@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MVC Quest — Expedição ao Núcleo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <header id="hud">
+    <div class="hud-left">
+      <span id="hud-fase" class="hud-chip fase-chip">Fase 1</span>
+      <span id="hud-obj" class="hud-chip obj-chip">Fale com o Guardião</span>
+    </div>
+    <div class="hud-center">
+      <div class="mvc-badge" id="mvc-badge" title="Componente MVC em destaque">
+        <span class="mvc m" data-c="Model">M</span>
+        <span class="mvc v" data-c="View">V</span>
+        <span class="mvc c" data-c="Controller">C</span>
+      </div>
+    </div>
+    <div class="hud-right">
+      <div id="hud-vidas" class="vidas" title="Vida"></div>
+      <div id="hud-pontos" class="pontos">0</div>
+      <button id="btn-pausa" class="btn-icon" title="Pausar (Esc)">❚❚</button>
+    </div>
+  </header>
+
+  <div id="stage">
+    <canvas id="game" width="960" height="512"></canvas>
+
+    <!-- ================= TELA INICIAL ================= -->
+    <section id="tela-inicio" class="tela">
+      <div class="painel painel-inicio">
+        <p class="eyebrow">Instituto Federal do Paraná · POO</p>
+        <h1 class="titulo-game">MVC&nbsp;QUEST</h1>
+        <p class="subtitulo">Expedição ao Núcleo</p>
+        <p class="intro">
+          Você é <strong>Byte</strong>, um robô de manutenção do núcleo de uma aplicação Java.
+          Em cada setor há um <strong>Guardião</strong> que só abre o portal se você acertar o desafio.
+          Seis setores, 31 quests e um único jeito de passar: <strong>entender o MVC de verdade</strong>.
+        </p>
+        <div class="controles">
+          <div class="ctrl"><kbd>←</kbd><kbd>→</kbd><span>mover</span></div>
+          <div class="ctrl"><kbd>Espaço</kbd><span>pular</span></div>
+          <div class="ctrl"><kbd>E</kbd><span>conversar com Guardião</span></div>
+          <div class="ctrl"><kbd>Esc</kbd><span>pausar</span></div>
+        </div>
+        <button id="btn-comecar" class="btn btn-primario">Iniciar expedição</button>
+        <p class="dica">Dica: as respostas das atividades do Moodle estão embutidas no jogo. Errou? O Guardião explica o porquê.</p>
+      </div>
+    </section>
+
+    <!-- ================= PAUSA ================= -->
+    <section id="tela-pausa" class="tela oculta">
+      <div class="painel">
+        <h2 class="painel-titulo">Pausado</h2>
+        <p class="intro">Respire. O Guardião espera.</p>
+        <div class="linha-botoes">
+          <button id="btn-continuar" class="btn btn-primario">Continuar</button>
+          <button id="btn-reiniciar-pausa" class="btn btn-secundario">Reiniciar expedição</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= FIM DE JOGO ================= -->
+    <section id="tela-fim" class="tela oculta">
+      <div class="painel painel-central">
+        <h2 class="painel-titulo" id="fim-titulo">Núcleo instável</h2>
+        <p class="intro" id="fim-msg">Seus núcleos de vida foram esgotados.</p>
+        <div class="placar">
+          <div class="placar-item"><span class="placar-valor" id="fim-pontos">0</span><span class="placar-rotulo">pontos</span></div>
+          <div class="placar-item"><span class="placar-valor" id="fim-fase">1</span><span class="placar-rotulo">setor alcançado</span></div>
+        </div>
+        <button id="btn-reiniciar" class="btn btn-primario">Tentar novamente</button>
+      </div>
+    </section>
+
+    <!-- ================= RESUMO DE FASE ================= -->
+    <section id="tela-fase-ok" class="tela oculta">
+      <div class="painel painel-central">
+        <h2 class="painel-titulo" id="fase-ok-titulo">Setor liberado!</h2>
+        <div class="estrelas" id="fase-ok-estrelas"></div>
+        <p class="intro" id="fase-ok-msg"></p>
+        <div class="placar">
+          <div class="placar-item"><span class="placar-valor" id="fase-ok-pontos">0</span><span class="placar-rotulo">pontos na fase</span></div>
+          <div class="placar-item"><span class="placar-valor" id="fase-ok-vidas">0</span><span class="placar-rotulo">núcleos restantes</span></div>
+          <div class="placar-item"><span class="placar-valor" id="fase-ok-cristais">0</span><span class="placar-rotulo">cristais coletados</span></div>
+        </div>
+        <button id="btn-proxima" class="btn btn-primario">Seguir para o próximo setor</button>
+      </div>
+    </section>
+
+    <!-- ================= QUIZ (modal) ================= -->
+    <section id="quiz" class="tela quiz-tela oculto">
+      <div class="painel painel-quiz">
+        <div class="quiz-topo">
+          <div class="quiz-id">
+            <span class="quiz-fase" id="quiz-fase">Fase 1</span>
+            <span class="quiz-contador" id="quiz-contador">Questão 1/4</span>
+          </div>
+          <div class="quiz-comp" id="quiz-comp">Model</div>
+        </div>
+        <div class="barra-tempo"><div class="barra-tempo-fill" id="barra-tempo-fill"></div></div>
+
+        <div class="quiz-corpo" id="quiz-corpo"></div>
+        <div class="quiz-feedback" id="quiz-feedback"></div>
+
+        <div class="quiz-rodape">
+          <div class="quiz-pontos-atual">+<span id="quiz-valor">100</span> pts</div>
+          <div class="linha-botoes">
+            <button id="btn-verificar" class="btn btn-primario">Verificar</button>
+            <button id="btn-continuar-quiz" class="btn btn-primario oculto">Continuar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer id="rodape">
+    <span id="dica-rodape">← → para andar · Espaço para pular · E para conversar com o Guardião</span>
+    <span class="creditos">Baseado no conteúdo de <code>aula.md</code> — MVC em Java</span>
+  </footer>
+
+</div>
+
+<script src="js/dados.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/mundo.js"></script>
+<script src="js/jogo.js"></script>
+</body>
+</html>
